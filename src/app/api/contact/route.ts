@@ -60,6 +60,8 @@ async function sendEmailAlert(inquiry: ContactInquiry) {
       body: JSON.stringify({
         _subject: `🚀 [RACH Lead] ${inquiry.businessName} (${inquiry.phone})`,
         _template: "table",
+        _url: "https://rach.rampawar.in",
+        "Website Domain": "https://rach.rampawar.in",
         "Business Name": inquiry.businessName,
         "Phone / WhatsApp": inquiry.phone,
         "Industry / Category": inquiry.tradeType,
