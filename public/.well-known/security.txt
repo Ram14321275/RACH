@@ -1,0 +1,7 @@
+Contact: mailto:yuvexalearn@gmail.com
+Phone: tel:+919000008685
+Expires: 2027-12-31T23:59:59.000Z
+Preferred-Languages: en, te, hi
+Canonical: https://rach.in/.well-known/security.txt
+Policy: https://rach.in/#contact
+Acknowledgments: https://rach.in/#promise
