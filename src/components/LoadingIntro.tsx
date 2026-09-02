@@ -5,50 +5,79 @@ import Image from "next/image";
 
 export default function LoadingIntro() {
   const [progress, setProgress] = useState(0);
-  const [statusText, setStatusText] = useState("Initializing RACH Core...");
+  const [statusText, setStatusText] = useState("Initializing RACH Core Engine...");
   const [isFinished, setIsFinished] = useState(false);
   const [shouldRender, setShouldRender] = useState(true);
 
   useEffect(() => {
-    // Check if intro has already played in this browser session
-    const hasSeenIntro = sessionStorage.getItem("rach_intro_seen");
-    if (hasSeenIntro) {
-      setShouldRender(false);
-      return;
+    let isMounted = true;
+    const startTime = Date.now();
+    // 3.0 seconds guaranteed cinematic loading showcase so everyone sees the experience
+    const minFakeDuration = 3000;
+    let actualPageLoaded = typeof document !== "undefined" && document.readyState === "complete";
+
+    const onPageLoad = () => {
+      actualPageLoaded = true;
+    };
+
+    if (typeof window !== "undefined" && !actualPageLoaded) {
+      window.addEventListener("load", onPageLoad);
     }
 
-    const startTime = Date.now();
-    const duration = 4000; // 4.0s duration for a classic, immersive cinematic intro
-
     const interval = setInterval(() => {
+      if (!isMounted) return;
       const elapsed = Date.now() - startTime;
-      const pct = Math.min(100, Math.floor((elapsed / duration) * 100));
-      setProgress(pct);
 
-      if (pct < 22) {
-        setStatusText("Initializing RACH Core Architecture...");
-      } else if (pct < 45) {
-        setStatusText("Connecting Hyderabad Edge Node (< 0.4s)...");
-      } else if (pct < 70) {
-        setStatusText("Compiling High-Conversion Storefronts...");
-      } else if (pct < 92) {
-        setStatusText("Synchronizing Pakka Local Network...");
+      if (elapsed < minFakeDuration) {
+        // Stage 1: Simulated cinematic loading up to 90% across 3 seconds
+        const fakeRatio = elapsed / minFakeDuration;
+        // Ease out cubic for a polished acceleration/deceleration feel
+        const easedProgress = Math.floor((1 - Math.pow(1 - fakeRatio, 2.5)) * 90);
+        setProgress(Math.max(2, easedProgress));
+
+        if (easedProgress < 25) {
+          setStatusText("Initializing RACH Core Engine...");
+        } else if (easedProgress < 50) {
+          setStatusText("Connecting Hyderabad Edge Node (< 0.4s)...");
+        } else if (easedProgress < 75) {
+          setStatusText("Compiling High-Conversion Storefronts...");
+        } else {
+          setStatusText("Synchronizing Pakka Local Network...");
+        }
       } else {
-        setStatusText("Hyderabad Systems Ready.");
-      }
-
-      if (pct >= 100) {
+        // Stage 2: Finalize actual loading to 100%
+        setProgress(100);
+        setStatusText("Hyderabad Systems Ready • Welcome to RACH");
         clearInterval(interval);
+
+        // Graceful reveal after 600ms so user clearly registers 100% completion
         setTimeout(() => {
+          if (!isMounted) return;
           setIsFinished(true);
-          sessionStorage.setItem("rach_intro_seen", "true");
-          // Remove from DOM after slide-up animation completes
-          setTimeout(() => setShouldRender(false), 900);
-        }, 400);
+          setTimeout(() => {
+            if (isMounted) setShouldRender(false);
+          }, 850);
+        }, 600);
       }
     }, 30);
 
-    return () => clearInterval(interval);
+    // Keyboard shortcut (Escape) to skip if desired
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsFinished(true);
+        setTimeout(() => setShouldRender(false), 500);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+      if (typeof window !== "undefined") {
+        window.removeEventListener("load", onPageLoad);
+        window.removeEventListener("keydown", handleKeyDown);
+      }
+    };
   }, []);
 
   if (!shouldRender) return null;
@@ -74,17 +103,23 @@ export default function LoadingIntro() {
               priority
             />
           </div>
-          {/* Subtle Ambient Ring */}
-          <div className="absolute inset-0 -m-3 rounded-full border border-emerald-500/20 animate-ping pointer-events-none" style={{ animationDuration: "3s" }} />
+          {/* Ambient Pulse Ring */}
+          <div
+            className="absolute inset-0 -m-3 rounded-full border border-emerald-500/20 animate-ping pointer-events-none"
+            style={{ animationDuration: "3s" }}
+          />
         </div>
 
         {/* Wordmark with Precision Letter Spacing */}
-        <div className="space-y-1">
-          <div className="font-display font-extrabold text-2xl sm:text-3xl tracking-[0.35em] text-white flex items-center justify-center pl-2">
-            <span>R</span>
-            <span className="mx-1">A</span>
-            <span className="mx-1">C</span>
-            <span>H</span>
+        <div className="space-y-1 mb-2">
+          <div className="relative h-9 w-40 sm:h-10 sm:w-44 mx-auto">
+            <Image
+              src="/rach-metallic-wordmark.png"
+              alt="RACH"
+              fill
+              className="object-contain"
+              priority
+            />
           </div>
           <div className="text-[10px] sm:text-[11px] font-semibold tracking-[0.25em] text-zinc-400 uppercase">
             Build • Hosted • Managed
@@ -92,7 +127,7 @@ export default function LoadingIntro() {
         </div>
 
         {/* Precision Progress Bar & Telemetry */}
-        <div className="w-56 sm:w-64 mt-8 space-y-2.5">
+        <div className="w-56 sm:w-64 mt-6 space-y-2.5">
           <div className="w-full bg-zinc-800/80 rounded-full h-1 overflow-hidden p-0.5 border border-zinc-700/50">
             <div
               className="h-full rounded-full bg-gradient-to-r from-[#0B6B38] via-emerald-400 to-amber-300 transition-all duration-75 ease-out shadow-[0_0_12px_rgba(52,211,153,0.8)]"
@@ -112,10 +147,9 @@ export default function LoadingIntro() {
         <button
           onClick={() => {
             setIsFinished(true);
-            sessionStorage.setItem("rach_intro_seen", "true");
             setTimeout(() => setShouldRender(false), 500);
           }}
-          className="mt-6 text-[10px] tracking-wider uppercase text-zinc-500 hover:text-zinc-300 transition-colors py-1 px-3 rounded-full hover:bg-zinc-800/50"
+          className="mt-6 text-[10px] tracking-wider uppercase text-zinc-500 hover:text-zinc-300 transition-colors py-1 px-3 rounded-full hover:bg-zinc-800/50 cursor-pointer"
         >
           Skip Intro ↗
         </button>
