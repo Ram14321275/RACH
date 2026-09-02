@@ -24,31 +24,7 @@ import {
 export default function SaaSCommandBar() {
   const [isOpen, setIsOpen] = useState(false);
   const [portalOpen, setPortalOpen] = useState(false);
-  const [hubTab, setHubTab] = useState<"leads" | "system">("leads");
-  const [leads, setLeads] = useState<any[]>([]);
-  const [loadingLeads, setLoadingLeads] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-
-  const fetchLeads = async () => {
-    setLoadingLeads(true);
-    try {
-      const res = await fetch("/api/contact");
-      if (res.ok) {
-        const data = await res.json();
-        setLeads(data.inquiries || []);
-      }
-    } catch (err) {
-      console.error("Failed to load leads:", err);
-    } finally {
-      setLoadingLeads(false);
-    }
-  };
-
-  useEffect(() => {
-    if (portalOpen) {
-      fetchLeads();
-    }
-  }, [portalOpen]);
 
   // Keyboard shortcut: Cmd+K or Ctrl+K
   useEffect(() => {
@@ -269,176 +245,65 @@ export default function SaaSCommandBar() {
               </button>
             </div>
 
-            {/* Tab Navigation */}
-            <div className="px-6 pt-4 border-b border-zinc-800 flex items-center gap-3">
-              <button
-                onClick={() => setHubTab("leads")}
-                className={`pb-3 text-xs font-semibold flex items-center gap-2 border-b-2 transition-all ${
-                  hubTab === "leads"
-                    ? "border-emerald-500 text-white"
-                    : "border-transparent text-zinc-400 hover:text-zinc-200"
-                }`}
-              >
-                <span>🔔 Incoming Callback Requests</span>
-                <span className="bg-emerald-500/20 text-emerald-400 text-[10px] px-2 py-0.5 rounded-full font-mono">
-                  {leads.length}
-                </span>
-              </button>
-
-              <button
-                onClick={() => setHubTab("system")}
-                className={`pb-3 text-xs font-semibold flex items-center gap-2 border-b-2 transition-all ${
-                  hubTab === "system"
-                    ? "border-emerald-500 text-white"
-                    : "border-transparent text-zinc-400 hover:text-zinc-200"
-                }`}
-              >
-                <span>⚡ Infrastructure &amp; SLA</span>
-                <span className="bg-zinc-800 text-zinc-400 text-[10px] px-2 py-0.5 rounded-full font-mono">
-                  99.98%
-                </span>
-              </button>
-            </div>
-
-            {/* Modal Body */}
-            <div className="p-6 space-y-5 max-h-[480px] overflow-y-auto">
-              {hubTab === "leads" ? (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between text-xs text-zinc-400">
-                    <span>Real-time callback leads received from the website form:</span>
-                    <button
-                      onClick={fetchLeads}
-                      disabled={loadingLeads}
-                      className="text-emerald-400 hover:text-emerald-300 font-mono text-[11px] underline"
-                    >
-                      {loadingLeads ? "Refreshing..." : "↻ Refresh List"}
-                    </button>
+            {/* SaaS Metrics Dashboard Body */}
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+                <div className="bg-zinc-900 p-4 rounded-2xl border border-zinc-800">
+                  <div className="flex items-center justify-center gap-1.5 text-xs text-emerald-400 font-mono mb-1">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                    <span>OPERATIONAL</span>
                   </div>
-
-                  {leads.length === 0 ? (
-                    <div className="bg-zinc-900/60 p-8 rounded-2xl border border-zinc-800 text-center space-y-2">
-                      <div className="text-zinc-400 text-sm">No callback requests yet</div>
-                      <p className="text-zinc-500 text-xs">
-                        When a visitor submits their business name and phone on the contact form, their inquiry appears here in real time.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {leads.map((lead) => (
-                        <div
-                          key={lead.id}
-                          className="bg-zinc-900 p-4 rounded-2xl border border-zinc-800 space-y-2.5 hover:border-zinc-700 transition-colors"
-                        >
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <div className="font-display font-bold text-sm text-white">
-                                {lead.businessName}
-                              </div>
-                              <div className="text-[11px] text-emerald-400 font-medium">
-                                {lead.tradeType} {lead.customDomain ? `• ${lead.customDomain}` : ""}
-                              </div>
-                            </div>
-                            <span className="text-[10px] font-mono bg-emerald-950 text-emerald-400 border border-emerald-800/80 px-2 py-0.5 rounded-full">
-                              NEW LEAD
-                            </span>
-                          </div>
-
-                          {lead.message && (
-                            <p className="text-xs text-zinc-300 bg-zinc-950/70 p-2.5 rounded-xl border border-zinc-800/60 leading-relaxed italic">
-                              &ldquo;{lead.message}&rdquo;
-                            </p>
-                          )}
-
-                          <div className="flex items-center justify-between pt-1 text-xs">
-                            <span className="text-zinc-400 font-mono text-[11px]">
-                              📞 {lead.phone}
-                            </span>
-                            <div className="flex items-center gap-2">
-                              <a
-                                href={`tel:${lead.phone}`}
-                                className="bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
-                              >
-                                Call
-                              </a>
-                              <a
-                                href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, "")}?text=Hi%20${encodeURIComponent(
-                                  lead.businessName
-                                )}%2C%20this%20is%20Ram%20from%20RACH.%20I%20received%20your%20website%20callback%20request!`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="bg-[#0B6B38] hover:bg-[#08522A] text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1"
-                              >
-                                <MessageCircle className="w-3 h-3" />
-                                <span>WhatsApp Back</span>
-                              </a>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <div className="font-display font-black text-xl text-white">99.98%</div>
+                  <div className="text-[11px] text-zinc-400 mt-0.5">Hyd Edge Uptime</div>
                 </div>
-              ) : (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
-                    <div className="bg-zinc-900 p-4 rounded-2xl border border-zinc-800">
-                      <div className="flex items-center justify-center gap-1.5 text-xs text-emerald-400 font-mono mb-1">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                        <span>OPERATIONAL</span>
-                      </div>
-                      <div className="font-display font-black text-xl text-white">99.98%</div>
-                      <div className="text-[11px] text-zinc-400 mt-0.5">Hyd Edge Uptime</div>
-                    </div>
 
-                    <div className="bg-zinc-900 p-4 rounded-2xl border border-zinc-800">
-                      <div className="flex items-center justify-center gap-1 text-xs text-zinc-400 font-mono mb-1">
-                        <Lock className="w-3.5 h-3.5 text-emerald-400" />
-                        <span>SSL ENCRYPTED</span>
-                      </div>
-                      <div className="font-display font-black text-xl text-white">256-Bit TLS</div>
-                      <div className="text-[11px] text-zinc-400 mt-0.5">Automated Renewal</div>
-                    </div>
-
-                    <div className="bg-zinc-900 p-4 rounded-2xl border border-zinc-800">
-                      <div className="flex items-center justify-center gap-1 text-xs text-amber-400 font-mono mb-1">
-                        <Zap className="w-3.5 h-3.5 text-amber-400" />
-                        <span>CARE SLA</span>
-                      </div>
-                      <div className="font-display font-black text-xl text-white">&lt; 24 Hours</div>
-                      <div className="text-[11px] text-zinc-400 mt-0.5">Content Update Turnaround</div>
-                    </div>
+                <div className="bg-zinc-900 p-4 rounded-2xl border border-zinc-800">
+                  <div className="flex items-center justify-center gap-1 text-xs text-zinc-400 font-mono mb-1">
+                    <Lock className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>SSL ENCRYPTED</span>
                   </div>
-
-                  {/* Quick Update Ticket Simulator */}
-                  <div className="bg-zinc-900/80 p-5 rounded-2xl border border-zinc-800 space-y-3">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-white uppercase tracking-wider">
-                        Submit a 24-Hr Website Update Request:
-                      </span>
-                      <span className="text-zinc-400 text-[11px]">Included in RACH Care</span>
-                    </div>
-                    <input
-                      type="text"
-                      placeholder="e.g. Please update our salon Diwali offer menu or add new doctor profile..."
-                      className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-3.5 py-2.5 text-xs text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-emerald-500"
-                    />
-                    <div className="flex items-center justify-between pt-1">
-                      <span className="text-[10px] text-zinc-400">
-                        Routing to dedicated WhatsApp support team (+91 90000 08685)
-                      </span>
-                      <a
-                        href="https://wa.me/919000008685?text=Hi%20RACH%2C%20I%20need%20a%20website%20update."
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="bg-[#0B6B38] hover:bg-[#08522A] text-white text-xs font-bold px-4 py-2 rounded-full transition-colors flex items-center gap-1.5"
-                      >
-                        <MessageCircle className="w-3.5 h-3.5 fill-white" />
-                        <span>Submit via WhatsApp</span>
-                      </a>
-                    </div>
-                  </div>
+                  <div className="font-display font-black text-xl text-white">256-Bit TLS</div>
+                  <div className="text-[11px] text-zinc-400 mt-0.5">Automated Renewal</div>
                 </div>
-              )}
+
+                <div className="bg-zinc-900 p-4 rounded-2xl border border-zinc-800">
+                  <div className="flex items-center justify-center gap-1 text-xs text-amber-400 font-mono mb-1">
+                    <Zap className="w-3.5 h-3.5 text-amber-400" />
+                    <span>CARE SLA</span>
+                  </div>
+                  <div className="font-display font-black text-xl text-white">&lt; 24 Hours</div>
+                  <div className="text-[11px] text-zinc-400 mt-0.5">Content Update Turnaround</div>
+                </div>
+              </div>
+
+              {/* Quick Update Ticket Simulator */}
+              <div className="bg-zinc-900/80 p-5 rounded-2xl border border-zinc-800 space-y-3">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-white uppercase tracking-wider">
+                    Submit a 24-Hr Website Update Request:
+                  </span>
+                  <span className="text-zinc-400 text-[11px]">Included in RACH Care</span>
+                </div>
+                <input
+                  type="text"
+                  placeholder="e.g. Please update our salon Diwali offer menu or add new doctor profile..."
+                  className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-3.5 py-2.5 text-xs text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-emerald-500"
+                />
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-[10px] text-zinc-400">
+                    Routing to dedicated WhatsApp support team (+91 90000 08685)
+                  </span>
+                  <a
+                    href="https://wa.me/919000008685?text=Hi%20RACH%20Care%20Support%2C%20I%20need%20a%20website%20update."
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-[#0B6B38] hover:bg-[#08522A] text-white text-xs font-bold px-4 py-2 rounded-full transition-colors flex items-center gap-1.5"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5 fill-white" />
+                    <span>Submit via WhatsApp</span>
+                  </a>
+                </div>
+              </div>
             </div>
 
             {/* Modal Footer */}

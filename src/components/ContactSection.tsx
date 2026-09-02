@@ -53,6 +53,13 @@ export default function ContactSection() {
       });
       if (res.ok) {
         setSubmitted(true);
+        // Automatically open direct WhatsApp message to Ram (+91 90000 08685)
+        const tradeDesc =
+          tradeType === "Others (Custom Domain / Separate Industry)" ? customDomain : tradeType;
+        const waMsg = `Hi Ram (RACH), I just requested a callback for my business: *${businessName}* (${tradeDesc}). Phone: ${phone}.${
+          message ? ` Note: "${message}"` : ""
+        }`;
+        window.open(`https://wa.me/919000008685?text=${encodeURIComponent(waMsg)}`, "_blank");
       }
     } catch (err) {
       console.error(err);

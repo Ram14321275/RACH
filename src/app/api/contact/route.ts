@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 
-const DATA_FILE = path.join(process.cwd(), "public", "inquiries-data.json");
+// Private server storage (NOT in public folder - zero public exposure)
+const PRIVATE_DIR = path.join(process.cwd(), "private-leads");
+const DATA_FILE = path.join(PRIVATE_DIR, "inquiries.json");
 
 interface ContactInquiry {
   id: string;
@@ -13,11 +15,17 @@ interface ContactInquiry {
   message?: string;
   timestamp: string;
   region: string;
-  status: "new" | "contacted" | "closed";
 }
 
-function readInquiries(): ContactInquiry[] {
+function ensurePrivateDir() {
+  if (!fs.existsSync(PRIVATE_DIR)) {
+    fs.mkdirSync(PRIVATE_DIR, { recursive: true });
+  }
+}
+
+function readPrivateInquiries(): ContactInquiry[] {
   try {
+    ensurePrivateDir();
     if (fs.existsSync(DATA_FILE)) {
       const raw = fs.readFileSync(DATA_FILE, "utf-8");
       return JSON.parse(raw);
@@ -28,21 +36,31 @@ function readInquiries(): ContactInquiry[] {
   return [];
 }
 
-function saveInquiries(data: ContactInquiry[]) {
+function savePrivateInquiry(inquiry: ContactInquiry) {
   try {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), "utf-8");
+    ensurePrivateDir();
+    const existing = readPrivateInquiries();
+    existing.unshift(inquiry);
+    fs.writeFileSync(DATA_FILE, JSON.stringify(existing, null, 2), "utf-8");
   } catch (err) {
     console.error("[RACH Inquiries Write Error]:", err);
   }
 }
 
-// GET: Retrieve incoming inquiries for RACH Admin / Hub
+// GET: Secure health check (NEVER exposes customer data publicly)
 export async function GET() {
-  const inquiries = readInquiries();
-  return NextResponse.json({ success: true, count: inquiries.length, inquiries }, { status: 200 });
+  return NextResponse.json(
+    {
+      status: "operational",
+      gateway: "RACH Private Contact Routing",
+      notificationChannel: "WhatsApp & Dedicated Inbox",
+      region: "Hyderabad Edge Node",
+    },
+    { status: 200 }
+  );
 }
 
-// POST: Handle new callback submission
+// POST: Secure callback submission
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -78,21 +96,20 @@ export async function POST(req: NextRequest) {
       message: sanitizedMsg,
       timestamp: new Date().toISOString(),
       region: "Hyderabad / Pan-India",
-      status: "new",
     };
 
-    // 4. File Persistence (Appends to public/inquiries-data.json)
-    const existing = readInquiries();
-    existing.unshift(newInquiry);
-    saveInquiries(existing);
+    // 4. Secure Private Server-Side Storage
+    savePrivateInquiry(newInquiry);
 
-    console.log(`[RACH New Lead Received]: ${sanitizedBusiness} (${sanitizedPhone}) - ${sanitizedTrade}`);
+    // 5. Server console log (visible only to server administrator)
+    console.log(
+      `[PRIVATE INQUIRY RECEIVED]: ${sanitizedBusiness} | Phone: ${sanitizedPhone} | Trade: ${sanitizedTrade} | Region: Hyderabad`
+    );
 
     return NextResponse.json(
       {
         success: true,
         message: "Your inquiry has been received securely. We will contact you within 2 hours.",
-        data: newInquiry,
       },
       { status: 200 }
     );
