@@ -1,5 +1,48 @@
 import { NextRequest, NextResponse } from "next/server";
+import fs from "fs";
+import path from "path";
 
+const DATA_FILE = path.join(process.cwd(), "public", "inquiries-data.json");
+
+interface ContactInquiry {
+  id: string;
+  businessName: string;
+  phone: string;
+  tradeType: string;
+  customDomain?: string;
+  message?: string;
+  timestamp: string;
+  region: string;
+  status: "new" | "contacted" | "closed";
+}
+
+function readInquiries(): ContactInquiry[] {
+  try {
+    if (fs.existsSync(DATA_FILE)) {
+      const raw = fs.readFileSync(DATA_FILE, "utf-8");
+      return JSON.parse(raw);
+    }
+  } catch (err) {
+    console.error("[RACH Inquiries Read Error]:", err);
+  }
+  return [];
+}
+
+function saveInquiries(data: ContactInquiry[]) {
+  try {
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), "utf-8");
+  } catch (err) {
+    console.error("[RACH Inquiries Write Error]:", err);
+  }
+}
+
+// GET: Retrieve incoming inquiries for RACH Admin / Hub
+export async function GET() {
+  const inquiries = readInquiries();
+  return NextResponse.json({ success: true, count: inquiries.length, inquiries }, { status: 200 });
+}
+
+// POST: Handle new callback submission
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -26,8 +69,7 @@ export async function POST(req: NextRequest) {
     const sanitizedCustomDomain = (customDomain || "").replace(/<[^>]*>?/gm, "").slice(0, 120);
     const sanitizedMsg = (message || "").replace(/<[^>]*>?/gm, "").slice(0, 1000);
 
-    // In production, this can forward to WhatsApp Cloud API, Email, or Database
-    const submission = {
+    const newInquiry: ContactInquiry = {
       id: `inq_${Date.now()}`,
       businessName: sanitizedBusiness,
       phone: sanitizedPhone,
@@ -36,15 +78,21 @@ export async function POST(req: NextRequest) {
       message: sanitizedMsg,
       timestamp: new Date().toISOString(),
       region: "Hyderabad / Pan-India",
+      status: "new",
     };
 
-    console.log("[RACH Secure Inquiry]:", submission);
+    // 4. File Persistence (Appends to public/inquiries-data.json)
+    const existing = readInquiries();
+    existing.unshift(newInquiry);
+    saveInquiries(existing);
+
+    console.log(`[RACH New Lead Received]: ${sanitizedBusiness} (${sanitizedPhone}) - ${sanitizedTrade}`);
 
     return NextResponse.json(
       {
         success: true,
         message: "Your inquiry has been received securely. We will contact you within 2 hours.",
-        data: submission,
+        data: newInquiry,
       },
       { status: 200 }
     );
