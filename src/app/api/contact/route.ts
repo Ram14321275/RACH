@@ -47,13 +47,44 @@ function savePrivateInquiry(inquiry: ContactInquiry) {
   }
 }
 
+async function sendEmailAlert(inquiry: ContactInquiry) {
+  try {
+    const response = await fetch("https://formsubmit.co/ajax/yuvexalearn@gmail.com", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Origin: "https://rach.in",
+        Referer: "https://rach.in/",
+      },
+      body: JSON.stringify({
+        _subject: `🚀 [RACH Lead] ${inquiry.businessName} (${inquiry.phone})`,
+        _template: "table",
+        "Business Name": inquiry.businessName,
+        "Phone / WhatsApp": inquiry.phone,
+        "Industry / Category": inquiry.tradeType,
+        "Custom Domain": inquiry.customDomain || "N/A",
+        "Requirements / Message": inquiry.message || "None specified",
+        "Submission Time (IST)": new Date(inquiry.timestamp).toLocaleString("en-IN", {
+          timeZone: "Asia/Kolkata",
+        }),
+        "Operating Region": inquiry.region,
+      }),
+    });
+    const result = await response.json();
+    console.log("[RACH Email Notification Result]:", result);
+  } catch (err) {
+    console.error("[RACH Email Notification Failed]:", err);
+  }
+}
+
 // GET: Secure health check (NEVER exposes customer data publicly)
 export async function GET() {
   return NextResponse.json(
     {
       status: "operational",
       gateway: "RACH Private Contact Routing",
-      notificationChannel: "WhatsApp & Dedicated Inbox",
+      notificationChannel: "WhatsApp & yuvexalearn@gmail.com",
       region: "Hyderabad Edge Node",
     },
     { status: 200 }
@@ -101,7 +132,10 @@ export async function POST(req: NextRequest) {
     // 4. Secure Private Server-Side Storage
     savePrivateInquiry(newInquiry);
 
-    // 5. Server console log (visible only to server administrator)
+    // 5. Automatic Email Notification to yuvexalearn@gmail.com
+    await sendEmailAlert(newInquiry);
+
+    // 6. Server console log (visible only to server administrator)
     console.log(
       `[PRIVATE INQUIRY RECEIVED]: ${sanitizedBusiness} | Phone: ${sanitizedPhone} | Trade: ${sanitizedTrade} | Region: Hyderabad`
     );
