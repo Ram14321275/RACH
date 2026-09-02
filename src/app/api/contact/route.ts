@@ -54,8 +54,8 @@ async function sendEmailAlert(inquiry: ContactInquiry) {
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
-        Origin: "https://rach.in",
-        Referer: "https://rach.in/",
+        Origin: "https://rach.rampawar.in",
+        Referer: "https://rach.rampawar.in/",
       },
       body: JSON.stringify({
         _subject: `🚀 [RACH Lead] ${inquiry.businessName} (${inquiry.phone})`,

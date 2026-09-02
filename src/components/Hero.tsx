@@ -48,7 +48,7 @@ export default function Hero() {
       category: "Personal Brand & AI Solutions",
       tagline: "AI Solutions Architect Portfolio & Client Portal",
       badge: "Portfolio Demo",
-      url: "https://rampawar.rach.in",
+      url: "https://rampawar.in",
       highlights: [
         "Modern dark-light typography",
         "Interactive tech stack badges (Canva, Ps, VS Code)",
@@ -62,7 +62,7 @@ export default function Hero() {
       category: "Hair, Skin & Luxury Wellness",
       tagline: "Organic Hair & Botanical Skin Rituals",
       badge: "Salon Demo",
-      url: "https://kayabotanics.rach.in",
+      url: "https://kayabotanics.rach.rampawar.in",
       highlights: [
         "1-Tap WhatsApp Booking with pre-filled service",
         "Transparent INR pricing menu",
@@ -76,7 +76,7 @@ export default function Hero() {
       category: "Healthcare & Orthopedic OPD",
       tagline: "Joint Replacement & Sports Rehabilitation",
       badge: "Clinic Demo",
-      url: "https://mehtaortho.rach.in",
+      url: "https://mehtaortho.rach.rampawar.in",
       highlights: [
         "Doctor qualification & hospital affiliations",
         "Morning & evening OPD consultation timetable",
@@ -90,7 +90,7 @@ export default function Hero() {
       category: "B2B CNC & Sheet Metal Engineering",
       tagline: "5-Axis CNC & High-Tolerance Components",
       badge: "Manufacturer Demo",
-      url: "https://apexprecision.rach.in",
+      url: "https://apexprecision.rach.rampawar.in",
       highlights: [
         "Shop floor plant machinery list (40+ CNC)",
         "Downloadable technical PDF specs",

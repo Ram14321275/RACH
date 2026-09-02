@@ -62,7 +62,10 @@ export default function TestimonialsSection() {
   }, []);
 
   const handleCopyReviewLink = () => {
-    const url = typeof window !== "undefined" ? `${window.location.origin}/#testimonials` : "https://rach.in/#testimonials";
+    const url =
+      typeof window !== "undefined"
+        ? `${window.location.origin}/#testimonials`
+        : "https://rach.rampawar.in/#testimonials";
     navigator.clipboard.writeText(url);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2500);
