@@ -274,13 +274,16 @@ export default function Pricing() {
                 </div>
               </div>
 
-              <button
+              <a
+                href="https://wa.me/919000008685?text=Hi%20RACH%2C%20I%20want%20to%20add%20RACH%20Care%20(%E2%82%B9999%2Fmo)%20to%20my%20website%20plan."
+                target="_blank"
+                rel="noopener noreferrer"
                 onClick={triggerCelebration}
-                className="w-full bg-[#0B6B38] hover:bg-[#08522A] text-white font-bold py-3.5 px-4 rounded-full text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
+                className="w-full bg-[#0B6B38] hover:bg-[#08522A] text-white font-bold py-3.5 px-4 rounded-full text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md active:scale-95"
               >
                 <MessageCircle className="w-4 h-4" />
-                <span>Add RACH Care to Build</span>
-              </button>
+                <span>Add RACH Care on WhatsApp (+91 90000 08685)</span>
+              </a>
             </div>
           </div>
         </div>
