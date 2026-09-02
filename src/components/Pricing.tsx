@@ -5,8 +5,6 @@ import { Check, MessageCircle, Sparkles } from "lucide-react";
 import confetti from "canvas-confetti";
 
 export default function Pricing() {
-  const [isBundle, setIsBundle] = useState(true);
-
   const triggerCelebration = () => {
     confetti({
       particleCount: 80,
@@ -20,10 +18,10 @@ export default function Pricing() {
     {
       id: "start",
       name: "START",
-      specCode: "TIER-01 // SINGLE-PAGE",
-      price: isBundle ? "₹14,999" : "₹4,999",
-      billing: isBundle ? "Includes 1 Full Year of RACH Care" : "One-time setup fee",
-      savings: isBundle ? "Save ₹1,989" : null,
+      specCode: "TIER-01 // SINGLE-PAGE STOREFRONT",
+      price: "₹4,999",
+      billing: "One-time setup fee",
+      savings: null,
       bestFor: "Domain-ready single trade businesses looking for a fast, sharp digital presence.",
       highlight: false,
       badge: "Fast Launch (3 Days)",
@@ -41,9 +39,9 @@ export default function Pricing() {
       id: "business",
       name: "BUSINESS",
       specCode: "TIER-02 // MULTI-PAGE STOREFRONT",
-      price: isBundle ? "₹18,999" : "₹8,999",
-      billing: isBundle ? "Includes 1 Full Year of RACH Care" : "One-time setup fee",
-      savings: isBundle ? "Most Popular • Save ₹2,989" : null,
+      price: "₹8,999",
+      billing: "One-time setup fee",
+      savings: "Most Popular",
       bestFor: "Salons, clinics, and growing local businesses needing full service menus & lead capture.",
       highlight: true,
       badge: "Most Selected by Local Owners",
@@ -63,7 +61,7 @@ export default function Pricing() {
       name: "CUSTOM",
       specCode: "TIER-03 // INDUSTRIAL & CATALOGUE",
       price: "₹15,000+",
-      billing: "One-time setup fee + tailored care",
+      billing: "One-time setup fee + tailored specs",
       savings: null,
       bestFor: "Manufacturers, fabricators, multi-branch clinics, and custom catalogue requirements.",
       highlight: false,
@@ -85,7 +83,7 @@ export default function Pricing() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="max-w-3xl mb-10 text-left">
+        <div className="max-w-3xl mb-12 text-left">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#EBF7EE] text-[#0B6B38] rounded-full text-xs font-bold uppercase tracking-wider mb-3">
             <span>TRANSPARENT PRICING</span>
           </div>
@@ -93,36 +91,8 @@ export default function Pricing() {
             Simple, honest pricing with zero hidden charges.
           </h2>
           <p className="mt-4 text-base sm:text-lg text-zinc-600 max-w-2xl leading-relaxed">
-            Choose standalone website engineering, or bundle with 1 year of managed RACH Care for complete hands-off maintenance.
+            Transparent one-time build packages tailored for local businesses, with optional ongoing RACH Care maintenance for complete peace of mind.
           </p>
-        </div>
-
-        {/* Pricing Bundle Toggle */}
-        <div className="flex items-center gap-2 mb-12 bg-zinc-100 p-1.5 rounded-full inline-flex border border-zinc-200">
-          <button
-            onClick={() => setIsBundle(false)}
-            className={`px-5 py-2 text-xs font-semibold rounded-full transition-all ${
-              !isBundle
-                ? "bg-zinc-900 text-white shadow-xs"
-                : "text-zinc-600 hover:text-zinc-900"
-            }`}
-          >
-            Standalone Build Only
-          </button>
-          <button
-            onClick={() => {
-              setIsBundle(true);
-              triggerCelebration();
-            }}
-            className={`px-5 py-2 text-xs font-semibold rounded-full transition-all flex items-center gap-1.5 ${
-              isBundle
-                ? "bg-[#0B6B38] text-white shadow-xs"
-                : "text-zinc-600 hover:text-zinc-900"
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Build + 1 Year RACH Care (Save ₹2,000+)</span>
-          </button>
         </div>
 
         {/* 3 Main Pricing Cards */}
