@@ -109,8 +109,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Business name is required." }, { status: 400 });
     }
 
-    if (!phone || typeof phone !== "string" || phone.trim().length < 8) {
-      return NextResponse.json({ error: "Valid phone or WhatsApp number is required." }, { status: 400 });
+    const cleanDigits = (phone || "").replace(/[^0-9]/g, "");
+    if (cleanDigits.length < 10) {
+      return NextResponse.json(
+        { error: "Please enter a valid 10-digit mobile or WhatsApp number." },
+        { status: 400 }
+      );
     }
 
     // 3. Sanitization (strip script/html tags)

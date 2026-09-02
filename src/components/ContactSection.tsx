@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { MessageCircle, Phone, Mail, MapPin, Send, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
+import { MessageCircle, Phone, Mail, MapPin, Send, CheckCircle2, ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
 
 export default function ContactSection() {
   const [businessName, setBusinessName] = useState("");
@@ -11,6 +11,8 @@ export default function ContactSection() {
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{ businessName?: boolean; phone?: boolean }>({});
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   const faqs = [
@@ -38,21 +40,43 @@ export default function ContactSection() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(null);
+
+    // 1. Business Name Validation
+    if (!businessName || businessName.trim().length < 2) {
+      setErrorMessage("Please enter your business or company name.");
+      setFieldErrors({ businessName: true });
+      return;
+    }
+
+    // 2. Phone / WhatsApp Validation (Strict 10+ digits check)
+    const cleanDigits = phone.replace(/[^0-9]/g, "");
+    if (cleanDigits.length < 10) {
+      setErrorMessage("Please enter a valid 10-digit phone or WhatsApp number (e.g. +91 90000 08685).");
+      setFieldErrors({ phone: true });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          businessName,
-          phone,
+          businessName: businessName.trim(),
+          phone: phone.trim(),
           tradeType,
-          customDomain: tradeType === "Others (Custom Domain / Separate Industry)" ? customDomain : "",
-          message,
+          customDomain: tradeType === "Others (Custom Domain / Separate Industry)" ? customDomain.trim() : "",
+          message: message.trim(),
         }),
       });
-      if (res.ok) {
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
         setSubmitted(true);
+        setErrorMessage(null);
+        setFieldErrors({});
         // Automatically open direct WhatsApp message to Ram (+91 90000 08685)
         const tradeDesc =
           tradeType === "Others (Custom Domain / Separate Industry)" ? customDomain : tradeType;
@@ -60,11 +84,12 @@ export default function ContactSection() {
           message ? ` Note: "${message}"` : ""
         }`;
         window.open(`https://wa.me/919000008685?text=${encodeURIComponent(waMsg)}`, "_blank");
+      } else {
+        setErrorMessage(data.error || "Please check your details and try again.");
       }
     } catch (err) {
       console.error(err);
-      // Fallback to submitted state for client feedback
-      setSubmitted(true);
+      setErrorMessage("Network error connecting to server. Please click below to contact us via WhatsApp directly.");
     } finally {
       setIsSubmitting(false);
     }
@@ -206,9 +231,17 @@ export default function ContactSection() {
                       type="text"
                       required
                       value={businessName}
-                      onChange={(e) => setBusinessName(e.target.value)}
+                      onChange={(e) => {
+                        setBusinessName(e.target.value);
+                        if (fieldErrors.businessName) setFieldErrors((p) => ({ ...p, businessName: false }));
+                        if (errorMessage) setErrorMessage(null);
+                      }}
                       placeholder="e.g. Royal Unisex Salon / Dr. Joshi Clinic"
-                      className="w-full bg-white border border-zinc-200 rounded-xl px-3.5 py-2.5 text-xs text-zinc-900 focus:border-[#0B6B38] focus:ring-1 focus:ring-[#0B6B38] focus:outline-none"
+                      className={`w-full bg-white border rounded-xl px-3.5 py-2.5 text-xs text-zinc-900 focus:outline-none transition-colors ${
+                        fieldErrors.businessName
+                          ? "border-red-400 ring-1 ring-red-400"
+                          : "border-zinc-200 focus:border-[#0B6B38] focus:ring-1 focus:ring-[#0B6B38]"
+                      }`}
                     />
                   </div>
 
@@ -221,9 +254,24 @@ export default function ContactSection() {
                         type="tel"
                         required
                         value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          // Allow numbers, spaces, plus, minus, parentheses
+                          if (/^[0-9+\s\-()]*$/.test(val)) {
+                            setPhone(val);
+                            if (fieldErrors.phone) setFieldErrors((p) => ({ ...p, phone: false }));
+                            if (errorMessage) setErrorMessage(null);
+                          } else {
+                            setErrorMessage("Please enter digits only for your phone / WhatsApp number.");
+                            setFieldErrors((p) => ({ ...p, phone: true }));
+                          }
+                        }}
                         placeholder="+91 90000 08685"
-                        className="w-full bg-white border border-zinc-200 rounded-xl px-3.5 py-2.5 text-xs text-zinc-900 focus:border-[#0B6B38] focus:ring-1 focus:ring-[#0B6B38] focus:outline-none"
+                        className={`w-full bg-white border rounded-xl px-3.5 py-2.5 text-xs text-zinc-900 focus:outline-none transition-colors ${
+                          fieldErrors.phone
+                            ? "border-red-400 ring-1 ring-red-400"
+                            : "border-zinc-200 focus:border-[#0B6B38] focus:ring-1 focus:ring-[#0B6B38]"
+                        }`}
                       />
                     </div>
                     <div>
@@ -277,6 +325,14 @@ export default function ContactSection() {
                       className="w-full bg-white border border-zinc-200 rounded-xl px-3.5 py-2.5 text-xs text-zinc-900 focus:border-[#0B6B38] focus:ring-1 focus:ring-[#0B6B38] focus:outline-none"
                     />
                   </div>
+
+                  {/* Error Notification Banner */}
+                  {errorMessage && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-3.5 py-2.5 rounded-xl text-xs flex items-center gap-2 animate-in fade-in zoom-in-95 duration-200 shadow-xs">
+                      <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+                      <span className="font-semibold">{errorMessage}</span>
+                    </div>
+                  )}
 
                   <button
                     type="submit"
